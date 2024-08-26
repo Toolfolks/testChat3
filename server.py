@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from gtts import gTTS
 from pydub import AudioSegment
 
+
 # Set environment variables for ffmpeg and ffprobe
 os.environ['FFMPEG_BINARY'] = 'ffmpeg'  # Use ffmpeg directly from the installed location
 os.environ['FFPROBE_BINARY'] = 'ffprobe'
