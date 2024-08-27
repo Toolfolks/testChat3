@@ -20,12 +20,12 @@ AudioSegment.ffprobe = os.environ['FFPROBE_BINARY']
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Allow CORS from https://www.wilsea.com
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://www.wilsea.com"],  # List of allowed origins
+    allow_origins=["https://wilsea.com"],  # List of allowed origins
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
+    allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
     allow_headers=["*"],  # Allow all headers
 )
 
