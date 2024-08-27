@@ -2,11 +2,11 @@ import os
 import io
 import logging
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from gtts import gTTS
 from pydub import AudioSegment
-
 
 # Set environment variables for ffmpeg and ffprobe
 os.environ['FFMPEG_BINARY'] = 'ffmpeg'  # Use ffmpeg directly from the installed location
@@ -19,6 +19,15 @@ AudioSegment.ffprobe = os.environ['FFPROBE_BINARY']
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Allow CORS from https://www.wilsea.com
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://www.wilsea.com"],  # List of allowed origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 class TextRequest(BaseModel):
     text: str

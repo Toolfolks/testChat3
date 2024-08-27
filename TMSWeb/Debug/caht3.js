@@ -51515,7 +51515,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       this.WebHttpRequest1.FResponseType = pas["WEBLib.REST"].THTTPRequestResponseType.rtBlob;
       JSONObj = pas["WEBLib.JSON"].TJSONObject.$create("Create$2");
       try {
-        JSONObj.AddPair$2("text",Transcript);
+        JSONObj.AddPair$2("text","testing 123");
         this.WebHttpRequest1.FPostData = JSONObj.ToJSON();
       } finally {
         JSONObj = rtl.freeLoc(JSONObj);
@@ -51540,6 +51540,9 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
           this.p.status = v;
         }}) + " " + ARequest.req.statusText);
       Handled.set(true);
+    };
+    this.WebHttpRequest1Response = function (Sender, AResponse) {
+      pas["WEBLib.Dialogs"].ShowMessage(AResponse);
     };
     this.LoadDFMValues = function () {
       pas["WEBLib.Forms"].TCustomForm.LoadDFMValues.call(this);
@@ -51596,6 +51599,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
         this.WebHttpRequest1.SetParentComponent(this);
         this.WebHttpRequest1.SetName("WebHttpRequest1");
         this.SetEvent$1(this.WebHttpRequest1,this,"OnError","WebHttpRequest1Error");
+        this.SetEvent$1(this.WebHttpRequest1,this,"OnResponse","WebHttpRequest1Response");
         this.WebHttpRequest1.SetLeft(304);
         this.WebHttpRequest1.SetTop(280);
       } finally {
@@ -51614,6 +51618,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
     $r.addMethod("ExecuteJavaScript",0,[["script",rtl.string,2]]);
     $r.addMethod("PlayAudioStream",0,[["Sender",pas.System.$rtti["TObject"]],["AResponse",pas.Web.$rtti["TJSXMLHttpRequest"]]]);
     $r.addMethod("WebHttpRequest1Error",0,[["Sender",pas.System.$rtti["TObject"]],["ARequest",pas["WEBLib.Controls"].$rtti["TJSXMLHttpRequestRecord"]],["Event",pas["WEBLib.Controls"].$rtti["TJSEventRecord"]],["Handled",rtl.boolean,1]]);
+    $r.addMethod("WebHttpRequest1Response",0,[["Sender",pas.System.$rtti["TObject"]],["AResponse",rtl.string]]);
   });
   this.Form1 = null;
 });

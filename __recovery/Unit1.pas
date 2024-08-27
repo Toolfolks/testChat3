@@ -19,6 +19,7 @@ type
     procedure WebHttpRequest1Error(Sender: TObject;
       ARequest: TJSXMLHttpRequestRecord; Event: TJSEventRecord;
       var Handled: Boolean);
+    procedure WebHttpRequest1Response(Sender: TObject; AResponse: string);
   private
     { Private declarations }
   public
@@ -43,6 +44,12 @@ procedure TForm1.WebHttpRequest1Error(Sender: TObject;
 begin
   ShowMessage('HTTP request failed. Status: ' + ARequest.req.Status.ToString + ' ' + ARequest.req.StatusText);
   Handled := True;
+end;
+
+procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
+begin
+       // PlayAudioStream;
+        showmessage(AResponse);
 end;
 
 procedure TForm1.HandleVoiceInput(const Transcript: string);

@@ -38,6 +38,7 @@ object Form1: TForm1
   end
   object WebHttpRequest1: TWebHttpRequest
     OnError = WebHttpRequest1Error
+    OnResponse = WebHttpRequest1Response
     Left = 304
     Top = 280
   end
