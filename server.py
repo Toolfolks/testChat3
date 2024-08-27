@@ -49,6 +49,14 @@ async def stream_audio(request: TextRequest):
         audio.export(wav_fp, format="wav")
         wav_fp.seek(0)
 
+ # Base64 encode the WAV file
+        base64_wav = base64.b64encode(wav_fp.getvalue()).decode('utf-8')
+
+        return {"audio": base64_wav}
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
         def iterfile():
             yield from wav_fp
 

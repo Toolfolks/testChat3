@@ -51515,11 +51515,12 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       this.WebHttpRequest1.FResponseType = pas["WEBLib.REST"].THTTPRequestResponseType.rtBlob;
       JSONObj = pas["WEBLib.JSON"].TJSONObject.$create("Create$2");
       try {
-        JSONObj.AddPair$2("text","testing 123");
+        JSONObj.AddPair$2("text",Transcript);
         this.WebHttpRequest1.FPostData = JSONObj.ToJSON();
       } finally {
         JSONObj = rtl.freeLoc(JSONObj);
       };
+      this.WebHttpRequest1.FOnResponse = rtl.createCallback(this,"WebHttpRequest1Response");
       this.WebHttpRequest1.FOnError = rtl.createCallback(this,"WebHttpRequest1Error");
       this.WebHttpRequest1.Execute(null);
     };
@@ -51528,10 +51529,10 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
     };
     this.PlayAudioStream = function (Sender, AResponse) {
       var audioUrl = "";
-      var audioBlob = AResponse.response;
-      audioUrl = URL.createObjectURL(audioBlob);
-      var audio = new Audio(audioUrl);
-      audio.play();
+      var audioBlob = AResponse.response;  // Access the response as a Blob
+      audioUrl = URL.createObjectURL(audioBlob);  // Create a URL for the blob
+      var audio = new Audio(audioUrl);  // Create an audio object
+      audio.play();  // Play the audio;
     };
     this.WebHttpRequest1Error = function (Sender, ARequest, Event, Handled) {
       pas["WEBLib.Dialogs"].ShowMessage("HTTP request failed. Status: " + pas.SysUtils.TIntegerHelper.ToString$1.call({p: ARequest.req, get: function () {
@@ -51542,7 +51543,18 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       Handled.set(true);
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
-      pas["WEBLib.Dialogs"].ShowMessage(AResponse);
+      var binaryString = atob(AResponse);  // Decode base64 string
+      var len = binaryString.length;
+      var bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Ensure correct MIME type
+      var audioUrl = URL.createObjectURL(blob);
+      var audio = new Audio(audioUrl);
+      audio.play().catch(function(error) {
+        console.error('Error playing audio:', error);  // Catch any errors in playing audio
+      });
     };
     this.LoadDFMValues = function () {
       pas["WEBLib.Forms"].TCustomForm.LoadDFMValues.call(this);

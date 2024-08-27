@@ -20,6 +20,8 @@ type
       ARequest: TJSXMLHttpRequestRecord; Event: TJSEventRecord;
       var Handled: Boolean);
     procedure WebHttpRequest1Response(Sender: TObject; AResponse: string);
+    //procedure WebHttpRequest1Response(Sender: TObject; AResponse: string);
+    //procedure WebHttpRequest1Response(Sender: TObject; AResponse: TJSXMLHttpRequest);
   private
     { Private declarations }
   public
@@ -46,11 +48,32 @@ begin
   Handled := True;
 end;
 
+
+
 procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
 begin
-       // PlayAudioStream;
-        showmessage(AResponse);
+  asm
+    var binaryString = atob(AResponse);  // Decode base64 string
+    var len = binaryString.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Ensure correct MIME type
+    var audioUrl = URL.createObjectURL(blob);
+    var audio = new Audio(audioUrl);
+    audio.play().catch(function(error) {
+      console.error('Error playing audio:', error);  // Catch any errors in playing audio
+    });
+  end;
 end;
+
+
+//procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: TJSXMLHttpRequest);
+//begin
+//  showmessage('response');
+//  PlayAudioStream(Sender, AResponse); // Corrected: Pass the TJSXMLHttpRequest object
+//end;
 
 procedure TForm1.HandleVoiceInput(const Transcript: string);
 var
@@ -69,16 +92,9 @@ begin
     JSONObj.Free;
   end;
 
-  //WebHttpRequest1.OnResponse := PlayAudioStream;
+  WebHttpRequest1.OnResponse := WebHttpRequest1Response;  // Correctly set the OnResponse handler
   WebHttpRequest1.OnError := WebHttpRequest1Error;
   WebHttpRequest1.Execute;
-end;
-
-procedure TForm1.ExecuteJavaScript(const script: string);
-begin
-  asm
-    eval(script);
-  end;
 end;
 
 procedure TForm1.PlayAudioStream(Sender: TObject; AResponse: TJSXMLHttpRequest);
@@ -86,10 +102,17 @@ var
   audioUrl: string;
 begin
   asm
-    var audioBlob = AResponse.response;
-    audioUrl = URL.createObjectURL(audioBlob);
-    var audio = new Audio(audioUrl);
-    audio.play();
+    var audioBlob = AResponse.response;  // Access the response as a Blob
+    audioUrl = URL.createObjectURL(audioBlob);  // Create a URL for the blob
+    var audio = new Audio(audioUrl);  // Create an audio object
+    audio.play();  // Play the audio
+  end;
+end;
+
+procedure TForm1.ExecuteJavaScript(const script: string);
+begin
+  asm
+    eval(script);
   end;
 end;
 
