@@ -10,10 +10,10 @@ from gtts import gTTS
 # Set up FastAPI
 app = FastAPI()
 
-# Configure CORS to allow requests from specific origins
+# Configure CORS to allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://wilsea.com"],  # Allow only specific origin
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
     allow_headers=["*"],  # Allow all headers
@@ -48,5 +48,3 @@ async def stream_audio(request: TextRequest):
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-# Example of running the server: uvicorn server:app --host 0.0.0.0 --port 8000
