@@ -49,7 +49,7 @@ procedure TForm1.HandleVoiceInput(const Transcript: string);
 var
   JSONObj: TJSONObject;
 begin
-  WebHttpRequest1.URL := 'http://localhost:5000/stream';
+  WebHttpRequest1.URL := 'https://testchat3.onrender.com/stream';
   WebHttpRequest1.Command := httpPOST;
   WebHttpRequest1.Headers.Values['Content-Type'] := 'application/json';
   WebHttpRequest1.ResponseType := rtBlob;  // Set response type to blob
@@ -62,7 +62,7 @@ begin
     JSONObj.Free;
   end;
 
-  WebHttpRequest1.OnResponse := PlayAudioStream;
+  //WebHttpRequest1.OnResponse := PlayAudioStream;
   WebHttpRequest1.OnError := WebHttpRequest1Error;
   WebHttpRequest1.Execute;
 end;
