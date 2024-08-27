@@ -51543,18 +51543,22 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       Handled.set(true);
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
-      var binaryString = atob(AResponse);  // Decode base64 string
-      var len = binaryString.length;
-      var bytes = new Uint8Array(len);
-      for (var i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Ensure correct MIME type
-      var audioUrl = URL.createObjectURL(blob);
-      var audio = new Audio(audioUrl);
-      audio.play().catch(function(error) {
-        console.error('Error playing audio:', error);  // Catch any errors in playing audio
-      });
+      try {
+        var binaryString = atob(AResponse);  // Decode base64-encoded string
+        var len = binaryString.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Correct MIME type
+        var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
+        var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
+        audio.play().catch(function(error) {
+          console.error('Error playing audio:', error);  // Log any errors if playback fails
+        });
+      } catch (e) {
+        console.error('Error processing audio:', e);  // Log processing errors
+      };
     };
     this.LoadDFMValues = function () {
       pas["WEBLib.Forms"].TCustomForm.LoadDFMValues.call(this);
@@ -51579,7 +51583,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
         this.WebButton1.SetParentComponent(this);
         this.WebButton1.SetName("WebButton1");
         this.WebButton1.SetLeft(32);
-        this.WebButton1.SetTop(41);
+        this.WebButton1.SetTop(113);
         this.WebButton1.SetWidth(96);
         this.WebButton1.SetHeight(25);
         this.WebButton1.SetCaption("WebButton1");
