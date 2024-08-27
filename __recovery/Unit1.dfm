@@ -11,7 +11,7 @@ object Form1: TForm1
   ParentFont = False
   object WebButton1: TWebButton
     Left = 32
-    Top = 41
+    Top = 113
     Width = 96
     Height = 25
     Caption = 'WebButton1'

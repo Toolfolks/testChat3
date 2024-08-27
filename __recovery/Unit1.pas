@@ -51,22 +51,22 @@ end;
 
 procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
 begin
-  // Use JavaScript to decode base64 string and play audio
   asm
-    var binaryString = atob(AResponse);  // Decode the base64 string into binary
-    var len = binaryString.length;
-    var bytes = new Uint8Array(len);
-    for (var i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    // Directly create a Blob from the response since it is already in binary format
+    var audioBlob = AResponse.response;  // Correctly handle the Blob response
+    if (audioBlob) {
+      var audioUrl = URL.createObjectURL(audioBlob);  // Create URL for the Blob
+      var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
+      audio.play().catch(function(error) {
+        console.error('Error playing audio:', error);  // Catch and log any errors
+      });
+    } else {
+      console.error('No audio blob found in response');
     }
-    var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Create a Blob from the binary data
-    var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
-    var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
-    audio.play().catch(function(error) {
-      console.error('Error playing audio:', error);  // Catch and log any errors
-    });
   end;
 end;
+
+
 
 
 

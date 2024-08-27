@@ -51543,21 +51543,16 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       Handled.set(true);
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
-      try {
-        var binaryString = atob(AResponse);  // Decode base64-encoded string
-        var len = binaryString.length;
-        var bytes = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Correct MIME type
-        var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
+      // Directly create a Blob from the response since it is already in binary format
+      var audioBlob = AResponse.response;  // Correctly handle the Blob response
+      if (audioBlob) {
+        var audioUrl = URL.createObjectURL(audioBlob);  // Create URL for the Blob
         var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
         audio.play().catch(function(error) {
-          console.error('Error playing audio:', error);  // Log any errors if playback fails
+          console.error('Error playing audio:', error);  // Catch and log any errors
         });
-      } catch (e) {
-        console.error('Error processing audio:', e);  // Log processing errors
+      } else {
+        console.error('No audio blob found in response');
       };
     };
     this.LoadDFMValues = function () {
