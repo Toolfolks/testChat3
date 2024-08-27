@@ -51512,7 +51512,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       this.WebHttpRequest1.FURL = "https://testchat3.onrender.com/stream";
       this.WebHttpRequest1.FCommand = pas["WEBLib.REST"].THTTPCommand.httpPOST;
       this.WebHttpRequest1.FHeaders.SetValue("Content-Type","application/json");
-      this.WebHttpRequest1.FResponseType = pas["WEBLib.REST"].THTTPRequestResponseType.rtText;
+      this.WebHttpRequest1.FResponseType = pas["WEBLib.REST"].THTTPRequestResponseType.rtBlob;
       JSONObj = pas["WEBLib.JSON"].TJSONObject.$create("Create$2");
       try {
         JSONObj.AddPair$2("text",Transcript);
@@ -51556,32 +51556,21 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       };
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
+      var $Self = this;
+      var ms = null;
+      var js = "";
+      ms = pas.Classes.TMemoryStream.$create("Create");
       try {
-            if (AResponse) {
-              // Convert binary string to a Uint8Array
-              var binaryString = atob(AResponse);  // Decode the base64 encoded string
-              var len = binaryString.length;
-              var bytes = new Uint8Array(len);
-              for (var i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-      
-              // Create a Blob from the binary data
-              var blob = new Blob([bytes.buffer], {type: 'audio/mpeg'});  // Correct MIME type for MP3
-              var url = window.URL.createObjectURL(blob);  // Create URL for the Blob
-              var a = document.createElement('a');  // Create a link element
-              a.href = url;  // Set the href attribute to the Blob URL
-              a.download = 'audio.mp3';  // Set the download attribute to specify the filename
-              document.body.appendChild(a);  // Append the link to the body
-              a.click();  // Trigger a click to start the download
-              document.body.removeChild(a);  // Remove the link from the document
-              window.URL.revokeObjectURL(url);  // Revoke the Blob URL to free up memory
-            } else {
-              console.error('No audio blob found in response');
-            }
-          } catch (e) {
-            console.error('Error processing audio:', e);  // Log any errors
-          };
+        ms.LoadFromURL(AResponse,true,function (Sender) {
+          var AudioBlobURL = "";
+          var blob = new Blob([new Uint8Array(ms.Memory.buffer)], { type: 'audio/mpeg' });  // Correct MIME type
+          AudioBlobURL = window.URL.createObjectURL(blob);
+          var audio = new Audio(AudioBlobURL);
+          audio.play();
+        },null);
+      } finally {
+        ms = rtl.freeLoc(ms);
+      };
     };
     this.LoadDFMValues = function () {
       pas["WEBLib.Forms"].TCustomForm.LoadDFMValues.call(this);

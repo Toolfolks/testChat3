@@ -1,16 +1,16 @@
 import os
 import io
 import logging
-import base64
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
 from gtts import gTTS
 
 # Set up FastAPI
 app = FastAPI()
 
-# Configure CORS to allow all origins
+# Configure CORS to allow all origins (for development/testing purposes)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins
@@ -40,11 +40,13 @@ async def stream_audio(request: TextRequest):
         tts.write_to_fp(mp3_fp)
         mp3_fp.seek(0)
 
-        # Encode the MP3 data as base64
-        base64_mp3 = base64.b64encode(mp3_fp.getvalue()).decode('utf-8')
-
-        return base64_mp3  # Return the base64-encoded string
+        # Stream the MP3 file directly as a binary response
+        return StreamingResponse(mp3_fp, media_type="audio/mpeg", headers={
+            "Content-Disposition": "attachment; filename=audio.mp3"
+        })
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+# Example of running the server: uvicorn server:app --host 0.0.0.0 --port 8000
