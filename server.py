@@ -6,29 +6,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from gtts import gTTS
-from pydub import AudioSegment
 
-# Set environment variables for ffmpeg and ffprobe
-os.environ['FFMPEG_BINARY'] = 'ffmpeg'  # Use ffmpeg directly from the installed location
-os.environ['FFPROBE_BINARY'] = 'ffprobe'
-
+# Set up FastAPI
 app = FastAPI()
-AudioSegment.converter = os.environ['FFMPEG_BINARY']
-AudioSegment.ffprobe = os.environ['FFPROBE_BINARY']
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Configure CORS
+# Configure CORS to allow requests from specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://wilsea.com"],  # Allow specific origin
+    allow_origins=["https://wilsea.com"],  # Allow only specific origin
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
     allow_headers=["*"],  # Allow all headers
 )
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Define the input model
 class TextRequest(BaseModel):
     text: str
 
@@ -39,18 +34,19 @@ async def stream_audio(request: TextRequest):
 
         # Generate speech using gTTS
         tts = gTTS(text=user_text, lang='en')
+
+        # Create a BytesIO stream to hold the MP3 data
         mp3_fp = io.BytesIO()
         tts.write_to_fp(mp3_fp)
         mp3_fp.seek(0)
 
-        # Convert MP3 to WAV using pydub
-        audio = AudioSegment.from_file(mp3_fp, format="mp3")
-        wav_fp = io.BytesIO()
-        audio.export(wav_fp, format="wav")
-        wav_fp.seek(0)
+        # Stream the MP3 file directly as a downloadable file
+        return StreamingResponse(mp3_fp, media_type="audio/mpeg", headers={
+            "Content-Disposition": "attachment; filename=audio.mp3"
+        })
 
-        # Stream the WAV file as an audio response
-        return StreamingResponse(wav_fp, media_type="audio/wav", headers={"Content-Disposition": "attachment; filename=audio.wav"})
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+# Example of running the server: uvicorn server:app --host 0.0.0.0 --port 8000

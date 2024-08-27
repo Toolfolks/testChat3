@@ -51505,7 +51505,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       pas["WEBLib.Forms"].TForm.$final.call(this);
     };
     this.WebButton1Click = function (Sender) {
-      this.HandleVoiceInput("hello");
+      this.HandleVoiceInput("Hello, world! This is some test audio I need you to say peeps. Thankyou.");
     };
     this.HandleVoiceInput = function (Transcript) {
       var JSONObj = null;
@@ -51557,29 +51557,19 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
       try {
-            // Check if AResponse is a base64 string
-            if (AResponse) {
-              // Decode the base64 string back to binary data
-              var binaryString = atob(AResponse); // This function decodes a base64 encoded string
-              var len = binaryString.length;
-              var bytes = new Uint8Array(len);
-              for (var i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i); // Convert binary string to bytes
-              }
-      
-              // Create a Blob from the binary data
-              var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Use the correct MIME type
-              var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
-              var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
-              audio.play().catch(function(error) {
-                console.error('Error playing audio:', error);  // Catch and log any errors
-              });
-            } else {
-              console.error('No audio blob found in response');  // Error handling if AResponse is empty or undefined
-            }
-          } catch (e) {
-            console.error('Error processing audio:', e);  // Log processing errors
-          };
+        // Create a Blob URL from the response for file download
+        var blob = new Blob([AResponse], {type: 'audio/wav'});  // Use the correct MIME type
+        var url = window.URL.createObjectURL(blob);  // Create URL for the Blob
+        var a = document.createElement('a');  // Create a link element
+        a.href = url;  // Set the href attribute to the Blob URL
+        a.download = 'audio.wav';  // Set the download attribute to specify the filename
+        document.body.appendChild(a);  // Append the link to the body
+        a.click();  // Trigger a click to start the download
+        document.body.removeChild(a);  // Remove the link from the document
+        window.URL.revokeObjectURL(url);  // Revoke the Blob URL
+      } catch (e) {
+        console.error('Error downloading audio:', e);  // Log any errors if downloading fails
+      };
     };
     this.LoadDFMValues = function () {
       pas["WEBLib.Forms"].TCustomForm.LoadDFMValues.call(this);

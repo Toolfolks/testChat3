@@ -46,33 +46,22 @@ begin
   ShowMessage('HTTP request failed. Status: ' + ARequest.req.Status.ToString + ' ' + ARequest.req.StatusText);
   Handled := True;
 end;
-
 procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
 begin
   asm
     try {
-      // Check if AResponse is a base64 string
-      if (AResponse) {
-        // Decode the base64 string back to binary data
-        var binaryString = atob(AResponse); // This function decodes a base64 encoded string
-        var len = binaryString.length;
-        var bytes = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i); // Convert binary string to bytes
-        }
-
-        // Create a Blob from the binary data
-        var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Use the correct MIME type
-        var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
-        var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
-        audio.play().catch(function(error) {
-          console.error('Error playing audio:', error);  // Catch and log any errors
-        });
-      } else {
-        console.error('No audio blob found in response');  // Error handling if AResponse is empty or undefined
-      }
+      // Create a Blob URL from the response for file download
+      var blob = new Blob([AResponse], {type: 'audio/wav'});  // Use the correct MIME type
+      var url = window.URL.createObjectURL(blob);  // Create URL for the Blob
+      var a = document.createElement('a');  // Create a link element
+      a.href = url;  // Set the href attribute to the Blob URL
+      a.download = 'audio.wav';  // Set the download attribute to specify the filename
+      document.body.appendChild(a);  // Append the link to the body
+      a.click();  // Trigger a click to start the download
+      document.body.removeChild(a);  // Remove the link from the document
+      window.URL.revokeObjectURL(url);  // Revoke the Blob URL
     } catch (e) {
-      console.error('Error processing audio:', e);  // Log processing errors
+      console.error('Error downloading audio:', e);  // Log any errors if downloading fails
     }
   end;
 end;
