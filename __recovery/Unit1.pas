@@ -36,7 +36,7 @@ implementation
 
 procedure TForm1.WebButton1Click(Sender: TObject);
 begin
-  HandleVoiceInput('hello');
+  HandleVoiceInput('Hello, world! This is some test audio I need you to say peeps. Thankyou.');
 end;
 
 procedure TForm1.WebHttpRequest1Error(Sender: TObject;
@@ -46,25 +46,33 @@ begin
   ShowMessage('HTTP request failed. Status: ' + ARequest.req.Status.ToString + ' ' + ARequest.req.StatusText);
   Handled := True;
 end;
-procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
+
+
+
+
+procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: TJSXMLHttpRequest);
 begin
   asm
     try {
-      // Create a Blob URL from the response for file download
-      var blob = new Blob([AResponse], {type: 'audio/wav'});  // Use the correct MIME type
-      var url = window.URL.createObjectURL(blob);  // Create URL for the Blob
-      var a = document.createElement('a');  // Create a link element
-      a.href = url;  // Set the href attribute to the Blob URL
-      a.download = 'audio.wav';  // Set the download attribute to specify the filename
-      document.body.appendChild(a);  // Append the link to the body
-      a.click();  // Trigger a click to start the download
-      document.body.removeChild(a);  // Remove the link from the document
-      window.URL.revokeObjectURL(url);  // Revoke the Blob URL
+      var audioBlob = AResponse.response;  // Access the Blob response directly
+      if (audioBlob) {
+        var url = URL.createObjectURL(audioBlob);  // Create URL for the Blob
+        var a = document.createElement('a');  // Create a link element
+        a.href = url;  // Set the href attribute to the Blob URL
+        a.download = 'audio.mp3';  // Set the download attribute to specify the filename
+        document.body.appendChild(a);  // Append the link to the body
+        a.click();  // Trigger a click to start the download
+        document.body.removeChild(a);  // Remove the link from the document
+        window.URL.revokeObjectURL(url);  // Revoke the Blob URL to free up memory
+      } else {
+        console.error('No audio blob found in response');
+      }
     } catch (e) {
       console.error('Error downloading audio:', e);  // Log any errors if downloading fails
     }
   end;
 end;
+
 
 
 
@@ -90,10 +98,10 @@ procedure TForm1.HandleVoiceInput(const Transcript: string);
 var
   JSONObj: TJSONObject;
 begin
-  WebHttpRequest1.URL := 'https://testchat3.onrender.com/stream';
+  WebHttpRequest1.URL := 'http://localhost:8000/stream';  // Change to your actual server URL
   WebHttpRequest1.Command := httpPOST;
   WebHttpRequest1.Headers.Values['Content-Type'] := 'application/json';
-  WebHttpRequest1.ResponseType := rtText;  // Set response type to text (default)
+  WebHttpRequest1.ResponseType := rtBlob;  // Ensure the response type is set to 'rtBlob'
 
   JSONObj := TJSONObject.Create;
   try
@@ -107,6 +115,7 @@ begin
   WebHttpRequest1.OnError := WebHttpRequest1Error;
   WebHttpRequest1.Execute;
 end;
+
 
 
 procedure TForm1.PlayAudioStream(Sender: TObject; AResponse: TJSXMLHttpRequest);

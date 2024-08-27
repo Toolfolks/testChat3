@@ -51557,12 +51557,12 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
       try {
-        // Create a Blob URL from the response for file download
-        var blob = new Blob([AResponse], {type: 'audio/wav'});  // Use the correct MIME type
+        // Convert the response to a Blob for download
+        var blob = new Blob([AResponse], {type: 'audio/mpeg'});  // Use the correct MIME type for MP3
         var url = window.URL.createObjectURL(blob);  // Create URL for the Blob
         var a = document.createElement('a');  // Create a link element
         a.href = url;  // Set the href attribute to the Blob URL
-        a.download = 'audio.wav';  // Set the download attribute to specify the filename
+        a.download = 'audio.mp3';  // Set the download attribute to specify the filename
         document.body.appendChild(a);  // Append the link to the body
         a.click();  // Trigger a click to start the download
         document.body.removeChild(a);  // Remove the link from the document
