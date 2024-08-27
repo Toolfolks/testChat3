@@ -1,6 +1,7 @@
 import os
 import io
 import logging
+import base64
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -9,7 +10,7 @@ from gtts import gTTS
 from pydub import AudioSegment
 
 # Set environment variables for ffmpeg and ffprobe
-os.environ['FFMPEG_BINARY'] = 'ffmpeg'
+os.environ['FFMPEG_BINARY'] = 'ffmpeg'  # Use ffmpeg directly from the installed location
 os.environ['FFPROBE_BINARY'] = 'ffprobe'
 
 app = FastAPI()
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://wilsea.com"],  # Allow specific origin
+    allow_origins=["https://wilsea.com"],  # Allow only specific origin
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
     allow_headers=["*"],  # Allow all headers
@@ -49,10 +50,10 @@ async def stream_audio(request: TextRequest):
         audio.export(wav_fp, format="wav")
         wav_fp.seek(0)
 
-        def iterfile():
-            yield from wav_fp
+        # Encode the WAV data as base64
+        base64_wav = base64.b64encode(wav_fp.getvalue()).decode('utf-8')
 
-        return StreamingResponse(iterfile(), media_type="audio/wav")
+        return base64_wav  # Return the base64-encoded string
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")

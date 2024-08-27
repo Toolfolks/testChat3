@@ -51512,7 +51512,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       this.WebHttpRequest1.FURL = "https://testchat3.onrender.com/stream";
       this.WebHttpRequest1.FCommand = pas["WEBLib.REST"].THTTPCommand.httpPOST;
       this.WebHttpRequest1.FHeaders.SetValue("Content-Type","application/json");
-      this.WebHttpRequest1.FResponseType = pas["WEBLib.REST"].THTTPRequestResponseType.rtBlob;
+      this.WebHttpRequest1.FResponseType = pas["WEBLib.REST"].THTTPRequestResponseType.rtText;
       JSONObj = pas["WEBLib.JSON"].TJSONObject.$create("Create$2");
       try {
         JSONObj.AddPair$2("text",Transcript);
@@ -51542,18 +51542,39 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
         }}) + " " + ARequest.req.statusText);
       Handled.set(true);
     };
-    this.WebHttpRequest1Response = function (Sender, AResponse) {
-      // Directly create a Blob from the response since it is already in binary format
-      var audioBlob = AResponse.response;  // Correctly handle the Blob response
+    this.WebHttpRequest1Response2 = function (Sender, AResponse) {
+      var audioUrl = "";
+      var audioBlob = AResponse.response;  // Access the Blob response directly
       if (audioBlob) {
         var audioUrl = URL.createObjectURL(audioBlob);  // Create URL for the Blob
         var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
         audio.play().catch(function(error) {
-          console.error('Error playing audio:', error);  // Catch and log any errors
+          console.error('Error playing audio:', error);  // Log any errors if playback fails
         });
       } else {
-        console.error('No audio blob found in response');
+        console.error('No audio blob found in response');  // This should not happen if the response type is correctly set to blob
       };
+    };
+    this.WebHttpRequest1Response = function (Sender, AResponse) {
+      try {
+            // Decode the base64 string back to binary data
+            var binaryString = atob(AResponse);
+            var len = binaryString.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+      
+            // Create a Blob from the binary data
+            var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Use the correct MIME type
+            var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
+            var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
+            audio.play().catch(function(error) {
+              console.error('Error playing audio:', error);  // Catch and log any errors
+            });
+          } catch (e) {
+            console.error('Error processing audio:', e);  // Log processing errors
+          };
     };
     this.LoadDFMValues = function () {
       pas["WEBLib.Forms"].TCustomForm.LoadDFMValues.call(this);
@@ -51629,6 +51650,7 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
     $r.addMethod("ExecuteJavaScript",0,[["script",rtl.string,2]]);
     $r.addMethod("PlayAudioStream",0,[["Sender",pas.System.$rtti["TObject"]],["AResponse",pas.Web.$rtti["TJSXMLHttpRequest"]]]);
     $r.addMethod("WebHttpRequest1Error",0,[["Sender",pas.System.$rtti["TObject"]],["ARequest",pas["WEBLib.Controls"].$rtti["TJSXMLHttpRequestRecord"]],["Event",pas["WEBLib.Controls"].$rtti["TJSEventRecord"]],["Handled",rtl.boolean,1]]);
+    $r.addMethod("WebHttpRequest1Response2",0,[["Sender",pas.System.$rtti["TObject"]],["AResponse",pas.Web.$rtti["TJSXMLHttpRequest"]]]);
     $r.addMethod("WebHttpRequest1Response",0,[["Sender",pas.System.$rtti["TObject"]],["AResponse",rtl.string]]);
   });
   this.Form1 = null;

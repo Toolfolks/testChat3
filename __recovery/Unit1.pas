@@ -19,8 +19,8 @@ type
     procedure WebHttpRequest1Error(Sender: TObject;
       ARequest: TJSXMLHttpRequestRecord; Event: TJSEventRecord;
       var Handled: Boolean);
+    procedure WebHttpRequest1Response2(Sender: TObject; AResponse: TJSXMLHttpRequest);
     procedure WebHttpRequest1Response(Sender: TObject; AResponse: string);
-
   private
     { Private declarations }
   public
@@ -47,35 +47,49 @@ begin
   Handled := True;
 end;
 
-
-
 procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
 begin
   asm
-    // Directly create a Blob from the response since it is already in binary format
-    var audioBlob = AResponse.response;  // Correctly handle the Blob response
-    if (audioBlob) {
-      var audioUrl = URL.createObjectURL(audioBlob);  // Create URL for the Blob
+    try {
+      // Decode the base64 string back to binary data
+      var binaryString = atob(AResponse);
+      var len = binaryString.length;
+      var bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Create a Blob from the binary data
+      var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Use the correct MIME type
+      var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
       var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
       audio.play().catch(function(error) {
         console.error('Error playing audio:', error);  // Catch and log any errors
       });
-    } else {
-      console.error('No audio blob found in response');
+    } catch (e) {
+      console.error('Error processing audio:', e);  // Log processing errors
     }
   end;
 end;
 
 
-
-
-
-
-//procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: TJSXMLHttpRequest);
-//begin
-//  showmessage('response');
-//  PlayAudioStream(Sender, AResponse); // Corrected: Pass the TJSXMLHttpRequest object
-//end;
+procedure TForm1.WebHttpRequest1Response2(Sender: TObject; AResponse: TJSXMLHttpRequest);
+var
+  audioUrl: string;
+begin
+  asm
+    var audioBlob = AResponse.response;  // Access the Blob response directly
+    if (audioBlob) {
+      var audioUrl = URL.createObjectURL(audioBlob);  // Create URL for the Blob
+      var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
+      audio.play().catch(function(error) {
+        console.error('Error playing audio:', error);  // Log any errors if playback fails
+      });
+    } else {
+      console.error('No audio blob found in response');  // This should not happen if the response type is correctly set to blob
+    }
+  end;
+end;
 
 procedure TForm1.HandleVoiceInput(const Transcript: string);
 var
@@ -84,7 +98,7 @@ begin
   WebHttpRequest1.URL := 'https://testchat3.onrender.com/stream';
   WebHttpRequest1.Command := httpPOST;
   WebHttpRequest1.Headers.Values['Content-Type'] := 'application/json';
-  WebHttpRequest1.ResponseType := rtBlob;  // Set response type to blob
+  WebHttpRequest1.ResponseType := rtText;  // Set response type to text (default)
 
   JSONObj := TJSONObject.Create;
   try
@@ -98,6 +112,7 @@ begin
   WebHttpRequest1.OnError := WebHttpRequest1Error;
   WebHttpRequest1.Execute;
 end;
+
 
 procedure TForm1.PlayAudioStream(Sender: TObject; AResponse: TJSXMLHttpRequest);
 var
