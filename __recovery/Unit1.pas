@@ -39,13 +39,7 @@ begin
   HandleVoiceInput('Hello, world! This is some test audio I need you to say peeps. Thankyou.');
 end;
 
-procedure TForm1.WebHttpRequest1Error(Sender: TObject;
-  ARequest: TJSXMLHttpRequestRecord; Event: TJSEventRecord;
-  var Handled: Boolean);
-begin
-  ShowMessage('HTTP request failed. Status: ' + ARequest.req.Status.ToString + ' ' + ARequest.req.StatusText);
-  Handled := True;
-end;
+
 
 
 
@@ -78,10 +72,10 @@ procedure TForm1.HandleVoiceInput(const Transcript: string);
 var
   JSONObj: TJSONObject;
 begin
-  WebHttpRequest1.URL := 'https://testchat3.onrender.com/stream';  // Use your server URL
+  WebHttpRequest1.URL := 'https://testchat3.onrender.com/stream';  // Use your actual server URL
   WebHttpRequest1.Command := httpPOST;
   WebHttpRequest1.Headers.Values['Content-Type'] := 'application/json';
-  WebHttpRequest1.ResponseType := rtText;  // Set response type to text
+  WebHttpRequest1.ResponseType := rtBlob;  // Set response type to Blob to handle binary data
 
   JSONObj := TJSONObject.Create;
   try
@@ -91,34 +85,20 @@ begin
     JSONObj.Free;
   end;
 
-  WebHttpRequest1.OnResponse := WebHttpRequest1Response;  // Correctly set the OnResponse handler
+  WebHttpRequest1.OnResponse := WebHttpRequest1Response;  // Set the correct OnResponse handler
   WebHttpRequest1.OnError := WebHttpRequest1Error;
   WebHttpRequest1.Execute;
 end;
 
-procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: string);
+procedure TForm1.WebHttpRequest1Response(Sender: TObject; AResponse: String);
 begin
   asm
     try {
-      if (AResponse) {
-        // Convert binary string to a Uint8Array
-        var binaryString = atob(AResponse);  // Decode the base64 encoded string
-        var len = binaryString.length;
-        var bytes = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        // Create a Blob from the binary data
-        var blob = new Blob([bytes.buffer], {type: 'audio/mpeg'});  // Correct MIME type for MP3
-        var url = window.URL.createObjectURL(blob);  // Create URL for the Blob
-        var a = document.createElement('a');  // Create a link element
-        a.href = url;  // Set the href attribute to the Blob URL
-        a.download = 'audio.mp3';  // Set the download attribute to specify the filename
-        document.body.appendChild(a);  // Append the link to the body
-        a.click();  // Trigger a click to start the download
-        document.body.removeChild(a);  // Remove the link from the document
-        window.URL.revokeObjectURL(url);  // Revoke the Blob URL to free up memory
+      var blob = AResponse.response;  // Directly use the response as a Blob
+      if (blob) {
+        var url = URL.createObjectURL(blob);  // Create a URL for the Blob
+        var audio = new Audio(url);  // Create an Audio object
+        audio.play();  // Play the audio
       } else {
         console.error('No audio blob found in response');
       }
@@ -126,6 +106,17 @@ begin
       console.error('Error processing audio:', e);  // Log any errors
     }
   end;
+end;
+
+procedure TForm1.WebHttpRequest1Error(Sender: TObject; ARequest: TJSXMLHttpRequestRecord; Event: TJSEventRecord; var Handled: Boolean);
+begin
+  ShowMessage('HTTP request failed. Status: ' + ARequest.req.Status.ToString + ' ' + ARequest.req.StatusText);
+  Handled := True;
+
+
+end
+
+
 end;
 
 

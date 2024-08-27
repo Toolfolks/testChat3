@@ -51520,8 +51520,6 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       } finally {
         JSONObj = rtl.freeLoc(JSONObj);
       };
-      this.WebHttpRequest1.FOnResponse = rtl.createCallback(this,"WebHttpRequest1Response");
-      this.WebHttpRequest1.FOnError = rtl.createCallback(this,"WebHttpRequest1Error");
       this.WebHttpRequest1.Execute(null);
     };
     this.ExecuteJavaScript = function (script) {
@@ -51556,20 +51554,16 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
       };
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
-      var $Self = this;
-      var ms = null;
-      var js = "";
-      ms = pas.Classes.TMemoryStream.$create("Create");
-      try {
-        ms.LoadFromURL(AResponse,true,function (Sender) {
-          var AudioBlobURL = "";
-          var blob = new Blob([new Uint8Array(ms.Memory.buffer)], { type: 'audio/mpeg' });  // Correct MIME type
-          AudioBlobURL = window.URL.createObjectURL(blob);
-          var audio = new Audio(AudioBlobURL);
-          audio.play();
-        },null);
-      } finally {
-        ms = rtl.freeLoc(ms);
+      var XMLHttpRequest = null;
+      var BlobURL = "";
+      XMLHttpRequest = Sender;
+      var audioBlob = XMLHttpRequest.response;  // Access the response as a Blob
+      if (audioBlob) {
+        var url = URL.createObjectURL(audioBlob);  // Create a URL for the Blob
+        var audio = new Audio(url);  // Create an Audio object with the Blob URL
+        audio.play();  // Play the audio
+      } else {
+        console.error('No audio blob found in response');
       };
     };
     this.LoadDFMValues = function () {
