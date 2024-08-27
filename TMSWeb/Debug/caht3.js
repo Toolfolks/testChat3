@@ -51557,21 +51557,26 @@ rtl.module("Unit1",["System","SysUtils","Classes","JS","Web","WEBLib.Graphics","
     };
     this.WebHttpRequest1Response = function (Sender, AResponse) {
       try {
-            // Decode the base64 string back to binary data
-            var binaryString = atob(AResponse);
-            var len = binaryString.length;
-            var bytes = new Uint8Array(len);
-            for (var i = 0; i < len; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
-            }
+            // Check if AResponse is a base64 string
+            if (AResponse) {
+              // Decode the base64 string back to binary data
+              var binaryString = atob(AResponse); // This function decodes a base64 encoded string
+              var len = binaryString.length;
+              var bytes = new Uint8Array(len);
+              for (var i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i); // Convert binary string to bytes
+              }
       
-            // Create a Blob from the binary data
-            var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Use the correct MIME type
-            var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
-            var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
-            audio.play().catch(function(error) {
-              console.error('Error playing audio:', error);  // Catch and log any errors
-            });
+              // Create a Blob from the binary data
+              var blob = new Blob([bytes.buffer], {type: 'audio/wav'});  // Use the correct MIME type
+              var audioUrl = URL.createObjectURL(blob);  // Create a URL for the Blob
+              var audio = new Audio(audioUrl);  // Create an audio object with the Blob URL
+              audio.play().catch(function(error) {
+                console.error('Error playing audio:', error);  // Catch and log any errors
+              });
+            } else {
+              console.error('No audio blob found in response');  // Error handling if AResponse is empty or undefined
+            }
           } catch (e) {
             console.error('Error processing audio:', e);  // Log processing errors
           };

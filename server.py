@@ -1,7 +1,6 @@
 import os
 import io
 import logging
-import base64
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://wilsea.com"],  # Allow only specific origin
+    allow_origins=["https://wilsea.com"],  # Allow specific origin
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
     allow_headers=["*"],  # Allow all headers
@@ -50,10 +49,8 @@ async def stream_audio(request: TextRequest):
         audio.export(wav_fp, format="wav")
         wav_fp.seek(0)
 
-        # Encode the WAV data as base64
-        base64_wav = base64.b64encode(wav_fp.getvalue()).decode('utf-8')
-
-        return base64_wav  # Return the base64-encoded string
+        # Stream the WAV file as an audio response
+        return StreamingResponse(wav_fp, media_type="audio/wav", headers={"Content-Disposition": "attachment; filename=audio.wav"})
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
