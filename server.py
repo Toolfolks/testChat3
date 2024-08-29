@@ -56,7 +56,7 @@ async def stream_audio(request: TextRequest):
         })
 
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 def add_message_to_thread(thread_id, role, content):
