@@ -136,14 +136,39 @@ run_status = wait_for_run_completion(my_thread.id, my_run.id)
 # Create a TestClient instance for sending requests to the FastAPI app
 client_app = TestClient(app)
 
-if run_status == "completed":
-    assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, last_message_time)
-    print(f"Assistant: {assistant_message}")
 
-    # Stream the assistant message as audio using the TestClient
-    response = client_app.post("/stream", json={"text": assistant_message})
-    with open("assistant_response.mp3", "wb") as f:
-        f.write(response.content)
+if run_status == "completed":
+    try:
+        # Attempt to retrieve the latest assistant message
+        assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, last_message_time)
+        
+        # Check if the assistant message was successfully retrieved
+        if assistant_message is None:
+            raise ValueError("Failed to retrieve assistant message: None returned")
+
+        print(f"Assistant: {assistant_message}")
+
+        # Attempt to stream the assistant message as audio using the TestClient
+        response = client_app.post("/stream", json={"text": assistant_message})
+
+        # Check if the response from the streaming request is successful
+        if response.status_code != 200:
+            raise RuntimeError(f"Failed to stream audio: {response.status_code} - {response.text}")
+
+        # Attempt to write the streamed audio to a file
+        with open("assistant_response.mp3", "wb") as f:
+            f.write(response.content)
+    
+    except ValueError as ve:
+        print(f"ValueError occurred: {ve}")
+    
+    except RuntimeError as re:
+        print(f"RuntimeError occurred: {re}")
+
+    except Exception as e:
+        # General exception catch for any unexpected errors
+        print(f"An unexpected error occurred: {e}")
+
 
 # Continue conversation
 while True:
