@@ -11,7 +11,7 @@ object Form1: TForm1
   ParentFont = False
   object WebButton1: TWebButton
     Left = 32
-    Top = 41
+    Top = 113
     Width = 96
     Height = 25
     Caption = 'WebButton1'
@@ -21,19 +21,6 @@ object Form1: TForm1
     HeightPercent = 100.000000000000000000
     WidthPercent = 100.000000000000000000
     OnClick = WebButton1Click
-  end
-  object WebButton2: TWebButton
-    Left = 32
-    Top = 120
-    Width = 96
-    Height = 25
-    Caption = 'WebButton1'
-    ChildOrder = 1
-    ElementClassName = 'btn btn-light'
-    ElementFont = efCSS
-    HeightStyle = ssAuto
-    HeightPercent = 100.000000000000000000
-    WidthPercent = 100.000000000000000000
   end
   object WebMemo1: TWebMemo
     Left = 296
@@ -49,8 +36,31 @@ object Form1: TForm1
     SelStart = 0
     WidthPercent = 100.000000000000000000
   end
+  object WebMultimediaPlayer1: TWebMultimediaPlayer
+    Left = 120
+    Top = 280
+    Width = 100
+    Height = 41
+    AutoPlay = True
+    MultimediaType = mtAudio
+    PlaybackRate = 1.000000000000000000
+  end
+  object WebButton2: TWebButton
+    Left = 72
+    Top = 192
+    Width = 96
+    Height = 25
+    Caption = 'WebButton2'
+    ChildOrder = 3
+    ElementClassName = 'btn btn-light'
+    ElementFont = efCSS
+    HeightStyle = ssAuto
+    HeightPercent = 100.000000000000000000
+    WidthPercent = 100.000000000000000000
+    OnClick = WebButton2Click
+  end
   object WebHttpRequest1: TWebHttpRequest
-    OnError = WebHttpRequest1Error
+    OnRequestResponse = WebHttpRequest1RequestResponse
     Left = 304
     Top = 280
   end

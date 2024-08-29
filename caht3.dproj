@@ -112,6 +112,9 @@
         <None Include="chat3.html"/>
         <None Include="C:\Users\User\Documents\Embarcadero\Studio\Projects\bootstrap.min.css"/>
         <None Include="C:\Users\User\Documents\Embarcadero\Studio\Projects\bootstrap.bundle.min.js"/>
+        <None Include="C:\Users\User\Downloads\audio.mp3"/>
+        <None Include="audio.mp3"/>
+        <None Include="audioHandler.js"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -146,6 +149,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="C:\Users\User\Downloads\audio.mp3" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="D:\techy\dementia\delphi\testChat3\chat3.html" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
@@ -155,6 +164,18 @@
                 <DeployFile LocalName="Win32\Debug\caht3.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>caht3.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="audio.mp3" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="audioHandler.js" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

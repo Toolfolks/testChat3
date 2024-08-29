@@ -6,13 +6,16 @@
     <Transaction>2024/08/02 15:15:51.000.920,=C:\Users\User\Documents\Embarcadero\Studio\Projects\bootstrap.bundle.min.js</Transaction>
     <Transaction>2024/08/02 15:15:51.000.850,=C:\Users\User\Documents\Embarcadero\Studio\Projects\bootstrap.min.css</Transaction>
     <Transaction>2024/08/02 15:15:51.000.412,=C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2024/08/02 15:16:25.000.084,C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.dfm=D:\techy\dementia\delphi\testChat3\Unit1.dfm</Transaction>
-    <Transaction>2024/08/02 15:16:25.000.084,C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.html=D:\techy\dementia\delphi\testChat3\Unit1.html</Transaction>
-    <Transaction>2024/08/02 15:16:25.000.084,C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.pas=D:\techy\dementia\delphi\testChat3\Unit1.pas</Transaction>
-    <Transaction>2024/08/02 15:16:29.000.345,C:\Users\User\Documents\Embarcadero\Studio\Projects\Project1.html=D:\techy\dementia\delphi\testChat3\chat3.html</Transaction>
-    <Transaction>2024/08/02 15:16:33.000.832,C:\Users\User\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\techy\dementia\delphi\testChat3\caht3.dproj</Transaction>
-    <Transaction>2024/08/26 15:20:23.011,D:\techy\dementia\delphi\testChat3\caht3.dproj=D:\techy\dementia\delphi\testChat3\caht3.dproj</Transaction>
-    <Transaction>2024/08/26 15:20:37.667,D:\techy\dementia\delphi\testChat3\caht3.dproj=D:\techy\dementia\delphi\testChat3\caht3.dproj</Transaction>
+    <Transaction>2024/08/02 15:16:25.000.084,D:\techy\dementia\delphi\testChat3\Unit1.html=C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.html</Transaction>
+    <Transaction>2024/08/02 15:16:25.000.084,D:\techy\dementia\delphi\testChat3\Unit1.pas=C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2024/08/02 15:16:25.000.084,D:\techy\dementia\delphi\testChat3\Unit1.dfm=C:\Users\User\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2024/08/02 15:16:29.000.345,D:\techy\dementia\delphi\testChat3\chat3.html=C:\Users\User\Documents\Embarcadero\Studio\Projects\Project1.html</Transaction>
+    <Transaction>2024/08/02 15:16:33.000.832,D:\techy\dementia\delphi\testChat3\caht3.dproj=C:\Users\User\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2024/08/26 15:20:23.000.011,D:\techy\dementia\delphi\testChat3\caht3.dproj=D:\techy\dementia\delphi\testChat3\caht3.dproj</Transaction>
+    <Transaction>2024/08/26 15:20:37.000.667,D:\techy\dementia\delphi\testChat3\caht3.dproj=D:\techy\dementia\delphi\testChat3\caht3.dproj</Transaction>
+    <Transaction>2024/08/29 13:12:13.083,=C:\Users\User\Downloads\audio.mp3</Transaction>
+    <Transaction>2024/08/29 13:13:32.153,=D:\techy\dementia\delphi\testChat3\audio.mp3</Transaction>
+    <Transaction>2024/08/29 14:45:29.078,=D:\techy\dementia\delphi\testChat3\audioHandler.js</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
 		<PMavAir1 iOSSimARM64="_iossimulator_B288FF0E-B000-428B-A49B-1A5A8A488461" iOSDevice64="_iosdevice_00008020-000378293C23002E"/>
