@@ -1,5 +1,4 @@
 
-
 import os
 import io
 import logging
@@ -14,7 +13,7 @@ from fastapi.testclient import TestClient  # Import TestClient
 
 # Initialize the OpenAI client
 client = OpenAI()
-#OpenAI.api_key = os.getenv('OPENAI_API_KEY') # Replace with your OpenAI API key
+
 OpenAI.api_key = os.getenv('OPENAI_API_KEY')  # Replace with your key if needed
 
 # Initialize FastAPI
@@ -149,15 +148,15 @@ if run_status == "completed":
         print(f"Assistant: {assistant_message}")
 
         # Attempt to stream the assistant message as audio using the TestClient
-        response = client_app.post("/stream", json={"text": assistant_message})
+        # response = client_app.post("/stream", json={"text": assistant_message})
 
         # Check if the response from the streaming request is successful
-        if response.status_code != 200:
-            raise RuntimeError(f"Failed to stream audio: {response.status_code} - {response.text}")
+        # if response.status_code != 200:
+        #    raise RuntimeError(f"Failed to stream audio: {response.status_code} - {response.text}")
 
         # Attempt to write the streamed audio to a file
-        with open("assistant_response.mp3", "wb") as f:
-            f.write(response.content)
+        # with open("assistant_response.mp3", "wb") as f:
+        #    f.write(response.content)
     
     except ValueError as ve:
         print(f"ValueError occurred: {ve}")
