@@ -1,6 +1,4 @@
 import os
-from openai import OpenAI
-import time
 
 # Define the filename
 filename = 'myFile.txt'
