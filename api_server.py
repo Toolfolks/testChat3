@@ -96,14 +96,10 @@ def retrieve_latest_assistant_message(thread_id, last_message_time):
     for msg in all_messages.data:
         print(f"Message ID: {msg.id} Time: {msg.created_at}, Role: {msg.role}, Content: {msg.content[0].text.value}")
     #ENDFOR
-
-    print(f"the last message time: " + last_message_time)
     
 
     # Find new assistant messages that are newer than the last known message time
     new_assistant_messages = [msg for msg in all_messages.data if msg.role == "assistant" and msg.created_at > last_message_time]
-
-
 
     # If there are new assistant messages, return the latest one
     if new_assistant_messages:
