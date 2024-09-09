@@ -133,13 +133,13 @@ async def stream_audio(request: TextRequest):
     if run_status == "completed":
         try:
             # Attempt to retrieve the latest assistant message
-            local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
+            local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, 0)
         
             # Check if the assistant message was successfully retrieved
             if global_assistant_message is None:
                 raise ValueError("Failed to retrieve assistant message: None returned")
 
-            global_last_message_time = last_message_time
+           # global_last_message_time = last_message_time
 
         except ValueError as ve:
             print(f"ValueError occurred: {ve}")
