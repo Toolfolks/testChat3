@@ -31,9 +31,6 @@ app.add_middleware(
 class TextRequest(BaseModel):
    text: str
 
-last_message_time = 0
-
-assistant_message = ""
 
    # Initialize the thread
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
@@ -120,7 +117,8 @@ async def stream_audio(request: TextRequest):
     # Wait for run to complete
     run_status = wait_for_run_completion(my_thread.id, my_run.id)
 
-
+    assistant_message = None
+    last_message_time = None
     if run_status == "completed":
         try:
             # Attempt to retrieve the latest assistant message
