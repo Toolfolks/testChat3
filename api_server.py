@@ -32,6 +32,9 @@ class TextRequest(BaseModel):
    text: str
 
 
+global_assistant_message = ""
+global_last_message_time = None
+   
    # Initialize the thread
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
@@ -117,15 +120,13 @@ async def stream_audio(request: TextRequest):
     # Wait for run to complete
     run_status = wait_for_run_completion(my_thread.id, my_run.id)
 
-    assistant_message = None
-    last_message_time = None
     if run_status == "completed":
         try:
             # Attempt to retrieve the latest assistant message
-            assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, last_message_time)
+            global_assistant_message, global_last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
         
             # Check if the assistant message was successfully retrieved
-            if assistant_message is None:
+            if global_assistant_message is None:
                 raise ValueError("Failed to retrieve assistant message: None returned")
 
 
@@ -141,7 +142,7 @@ async def stream_audio(request: TextRequest):
     #END IF
 
     try:
-        user_text = assistant_message
+        user_text = global_assistant_message
 
         # Generate speech using gTTS
         tts = gTTS(text=user_text, lang='en')
