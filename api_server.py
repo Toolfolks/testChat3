@@ -120,10 +120,13 @@ async def stream_audio(request: TextRequest):
     # Wait for run to complete
     run_status = wait_for_run_completion(my_thread.id, my_run.id)
 
+    local_assistant_message = ""
+
     if run_status == "completed":
         try:
+            last_message_time = 0
             # Attempt to retrieve the latest assistant message
-            global_assistant_message, global_last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
+            local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
         
             # Check if the assistant message was successfully retrieved
             if global_assistant_message is None:
@@ -142,7 +145,7 @@ async def stream_audio(request: TextRequest):
     #END IF
 
     try:
-        user_text = global_assistant_message
+        user_text = local_assistant_message
 
         # Generate speech using gTTS
         tts = gTTS(text=user_text, lang='en')
