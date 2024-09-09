@@ -31,6 +31,10 @@ app.add_middleware(
 class TextRequest(BaseModel):
    text: str
 
+last_message_time = 0
+
+assistant_message = ""
+
    # Initialize the thread
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
@@ -47,8 +51,6 @@ try :
     my_thread = client.beta.threads.create()
     #print(f"This is the thread object: {my_thread} \n")
 
-    # Track the time of the last assistant message to handle multiple inputs correctly
-    last_message_time = 0
 except Exception as e:
     print(f"An thread error occurred: {e}")
 
