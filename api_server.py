@@ -94,8 +94,11 @@ def retrieve_latest_assistant_message(thread_id, last_message_time):
     # Debugging: Print all messages to ensure we're seeing the complete list
     print(f"Total messages retrieved: {len(all_messages.data)}")
     for msg in all_messages.data:
-        print(f"Message ID: {msg.id}, Role: {msg.role}, Content: {msg.content[0].text.value}")
+        print(f"Message ID: {msg.id} Time: {msg.created_at}, Role: {msg.role}, Content: {msg.content[0].text.value}")
     #ENDFOR
+
+    print(f"the last message time: " + last_message_time)
+    
 
     # Find new assistant messages that are newer than the last known message time
     new_assistant_messages = [msg for msg in all_messages.data if msg.role == "assistant" and msg.created_at > last_message_time]
@@ -129,7 +132,6 @@ async def stream_audio(request: TextRequest):
 
     if run_status == "completed":
         try:
-            last_message_time = 0
             # Attempt to retrieve the latest assistant message
             local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
         
