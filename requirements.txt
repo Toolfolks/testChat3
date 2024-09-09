@@ -1,5 +1,5 @@
-fastapi==0.98.0
-uvicorn==0.23.0
-gtts==2.2.4
-pydub==0.25.1
-openai==1.43.0
+#fastapi==0.98.0
+#uvicorn==0.23.0
+#gtts==2.2.4
+#pydub==0.25.1
+#openai==1.43.0
