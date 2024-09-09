@@ -107,7 +107,7 @@ def retrieve_latest_assistant_message(thread_id, last_message_time):
         return latest_message.content[0].text.value, latest_message.created_at
     #ENDIF
 
-    print(new_assistant_messages[0])
+    print(f"should not be here" + new_assistant_messages[0])
 
     return None, last_message_time
 
@@ -151,7 +151,7 @@ async def stream_audio(request: TextRequest):
     try:
         user_text = local_assistant_message
 
-        print(user_text)
+        print(f"user text: " + user_text)
 
         # Generate speech using gTTS
         tts = gTTS(text=user_text, lang='en')
