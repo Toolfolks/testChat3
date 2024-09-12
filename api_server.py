@@ -129,7 +129,7 @@ async def stream_audio(request: TextRequest):
     if run_status == "completed":
         try:
             # Attempt to retrieve the latest assistant message
-            local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, 0)
+            local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
         
             # Check if the assistant message was successfully retrieved
             if global_assistant_message is None:
