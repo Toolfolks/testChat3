@@ -40,8 +40,6 @@ existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
 # Step 1: Retrieve the Existing Assistant
 existing_assistant = client.beta.assistants.retrieve(existing_assistant_id)
-print(f"This is the existing assistant object: {existing_assistant} \n")
-
 
 # Create a TestClient instance for sending requests to the FastAPI app
 client_app = TestClient(app)
@@ -103,7 +101,7 @@ def retrieve_latest_assistant_message(thread_id, last_message_time):
             print(f"Message ID: {msg.id} Time: {msg.created_at}, Role: {msg.role}, Content: {msg.content[0].text.value}")
         #ENDFOR
 
-        latest_message = new_assistant_messages[-1]
+        latest_message = new_assistant_messages[0]
         return latest_message.content[0].text.value, latest_message.created_at
     #ENDIF
 
