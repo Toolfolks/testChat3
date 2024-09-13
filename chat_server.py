@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
 from gtts import gTTS
-import openai
+from openai import OpenAI
 import asyncio
 import aiofiles
 import uuid
@@ -31,15 +31,50 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-# Replace 'YOUR_OPENAI_API_KEY' with your actual OpenAI API key
-openai.api_key = os.getenv('OPENAI_API_KEY') 
 
-# Replace 'existing_assistant_id' with your actual assistant ID
-existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
+# Initialize the OpenAI client
+
+client = OpenAI()
+OpenAI.api_key = os.getenv('OPENAI_API_KEY')  
 
 # Define the input model
 class TextRequest(BaseModel):
    text: str
+
+# Replace 'existing_assistant_id' with your actual assistant ID
+existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
+
+# Create a TestClient instance for sending requests to the FastAPI app
+client_app = TestClient(app)
+
+try :
+    # Step 2: Create a Thread
+    my_thread = client.beta.threads.create()
+    #print(f"This is the thread object: {my_thread} \n")
+except Exception as e:
+    print(f"An thread error occurred: {e}")
+
+
+
+def add_message_to_thread(thread_id, role, content):
+    """Adds a message to the thread and returns the message object."""
+    message = client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role=role,
+        content=content,
+    )
+    return message
+
+def run_assistant(thread_id, assistant_id, instructions):    
+    stream = client.beta.threads.runs.create(
+    thread_id= thread_id,
+    assistant_id=assistant_id,
+    instructions=instructions,
+    stream=True,
+    event_handler=EventHandler())
+
+    return stream;
+
 
 
 class EventHandler(AssistantEventHandler):
@@ -72,29 +107,20 @@ def run_stream(stream, q):
 app = FastAPI()
 
 @app.post("/chat")
-async def chat(request: Request):
-    data = await request.json()
-    user_input = data.get("input", "")
-
-    assistant_id = existing_assistant_id
-
-    # Create a new thread for the conversation
-    thread = openai.beta.threads.create()
-    thread_id = thread.id
+async def chat(request: TextRequest):
 
     q = queue.Queue()
     handler = EventHandler(q)
+   # Add message
+    add_message_to_thread(my_thread.id, "user", request.text)
 
-    # Start the streaming run
-    stream = openai.beta.threads.runs.stream(
-        thread_id=thread_id,
-        assistant_id=assistant_id,
-        messages=[{"role": "user", "content": user_input}],
-        event_handler=handler,
-    )
+    my_assistant = client.beta.assistants.retrieve(existing_assistant_id)
 
-    # Run the stream in a separate thread
-    t = threading.Thread(target=run_stream, args=(stream, q))
+
+    stream_q = run_assistant(my_thread.id, existing_assistant_id,my_assistant.instructions)
+
+
+    t = threading.Thread(target=run_stream, args=(stream_q, q))
     t.start()
 
     response = ""
@@ -105,8 +131,3 @@ async def chat(request: Request):
         response += item
 
     return {"response": response}
-
-# To run the FastAPI app
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run("your_script_name:app", host="0.0.0.0", port=8000)
