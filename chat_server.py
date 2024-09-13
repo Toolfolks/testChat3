@@ -79,7 +79,7 @@ async def chat(request: Request):
     assistant_id = existing_assistant_id
 
     # Create a new thread for the conversation
-    thread = openai.beta.threads.create(assistant_id=assistant_id)
+    thread = openai.beta.threads.create()
     thread_id = thread.id
 
     q = queue.Queue()
