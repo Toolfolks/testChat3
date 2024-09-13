@@ -10,6 +10,10 @@ import asyncio
 import aiofiles
 import uuid
 import os
+from pydantic import BaseModel
+
+from fastapi.testclient import TestClient  # Import TestClient
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -22,17 +26,37 @@ client = OpenAI(api_key=openai.api_key)
 # Replace 'existing_assistant_id' with your actual assistant ID
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
+# Define the input model
+class TextRequest(BaseModel):
+   text: str
+
+
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
     user_input = data.get('text', '')
 
+    
+    # Configure CORS to allow all origins (for development/testing purposes)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
+        allow_headers=["*"],  # Allow all headers
+    )
+
+    # Create a TestClient instance for sending requests to the FastAPI app
+    client_app = TestClient(app)
+    
+    # Step 1: Retrieve the Existing Assistant
+    existing_assistant = client.beta.assistants.retrieve(existing_assistant_id)
+
     async def stream_chat():
-        # Retrieve the existing assistant
-        existing_assistant = client.beta.assistants.retrieve(existing_assistant_id)
-        
+
+
         # Start a chat session with the assistant
-        response = await existing_assistant.chat_acreate(
+        response = await existing_assistant.chat_create(
             messages=[{"role": "user", "content": user_input}],
             stream=True
         )
