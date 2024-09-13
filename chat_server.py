@@ -15,6 +15,11 @@ from pydantic import BaseModel
 from fastapi.testclient import TestClient  # Import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 
+
+from openai import AssistantEventHandler
+import threading
+import queue
+
 app = FastAPI()
     # Configure CORS to allow all origins (for development/testing purposes)
 
@@ -29,9 +34,6 @@ app.add_middleware(
 # Replace 'YOUR_OPENAI_API_KEY' with your actual OpenAI API key
 openai.api_key = os.getenv('OPENAI_API_KEY') 
 
-# Initialize the OpenAI client
-client = OpenAI(api_key=openai.api_key)
-
 # Replace 'existing_assistant_id' with your actual assistant ID
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
@@ -39,16 +41,6 @@ existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 class TextRequest(BaseModel):
    text: str
 
-from flask import Flask, request, Response
-import openai
-from openai import AssistantEventHandler
-import threading
-import queue
-
-app = Flask(__name__)
-
-# Replace 'YOUR_API_KEY' with your actual OpenAI API key
-openai.api_key = 'YOUR_API_KEY'
 
 class EventHandler(AssistantEventHandler):
     def __init__(self, q):
@@ -62,7 +54,7 @@ class EventHandler(AssistantEventHandler):
 
     def on_tool_call_created(self, tool_call):
         self.q.put(f"\nassistant > {tool_call.type}\n")
-      
+
     def on_tool_call_delta(self, delta, snapshot):
         if delta.type == 'code_interpreter':
             if delta.code_interpreter.input:
@@ -77,13 +69,14 @@ def run_stream(stream, q):
     stream.until_done()
     q.put(None)  # Signal the end of the stream
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json
+app = FastAPI()
+
+@app.post("/chat")
+async def chat(request: Request):
+    data = await request.json()
     user_input = data.get("input", "")
 
-    # Replace 'YOUR_ASSISTANT_ID' with your actual assistant ID
-    assistant_id = 'YOUR_ASSISTANT_ID'
+    assistant_id = existing_assistant_id
 
     # Create a new thread for the conversation
     thread = openai.beta.threads.create(assistant_id=assistant_id)
@@ -104,14 +97,16 @@ def chat():
     t = threading.Thread(target=run_stream, args=(stream, q))
     t.start()
 
-    def generate():
-        while True:
-            item = q.get()
-            if item is None:
-                break
-            yield item
+    response = ""
+    while True:
+        item = q.get()
+        if item is None:
+            break
+        response += item
 
-    return Response(generate(), mimetype='text/plain')
+    return {"response": response}
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# To run the FastAPI app
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run("your_script_name:app", host="0.0.0.0", port=8000)
