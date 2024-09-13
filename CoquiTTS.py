@@ -6,9 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from gtts import gTTS
-from openai import OpenAI
-import time
-from fastapi.testclient import TestClient  # Import TestClient
 import openai
 
 # Set your OpenAI API key
@@ -32,18 +29,19 @@ class TextRequest(BaseModel):
 
 # Stream response generator using OpenAI's streaming feature
 async def stream_openai_response(prompt: str):
-    response = openai.Completion.create(
-        engine="text-davinci-003",  # or other models
-        prompt=prompt,
+    response = openai.ChatCompletion.create(
+        model="gpt-4",  # Use the chat model, change model if needed
+        messages=[{"role": "user", "content": prompt}],
         max_tokens=1000,
         stream=True  # Enable streaming
     )
 
+    # Streaming responses from OpenAI
     for chunk in response:
-        if 'choices' in chunk:
-            chunk_text = chunk['choices'][0].get('text', '')
-            if chunk_text.strip():
-                yield chunk_text
+        if "choices" in chunk:
+            chunk_message = chunk['choices'][0].get('delta', {}).get('content', '')
+            if chunk_message.strip():
+                yield chunk_message
 
 @app.post("/chatinput")
 async def stream_audio(request: TextRequest):
