@@ -1,5 +1,3 @@
-# CoquiTTS.py
-
 import os
 import io
 import logging
@@ -7,21 +5,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
+from gtts import gTTS
+from openai import OpenAI
+import time
+from fastapi.testclient import TestClient  # Import TestClient
 import openai
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
-import asyncio
 
-
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Initialize OpenAI API key
-openai.api_key = os.getenv('OPENAI_API_KEY')  # Ensure your API key is set
-
-# Initialize AWS Polly client
-polly_client = boto3.client('polly')
+# Set your OpenAI API key
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Initialize FastAPI
 app = FastAPI()
@@ -39,57 +30,47 @@ app.add_middleware(
 class TextRequest(BaseModel):
     text: str
 
+# Stream response generator using OpenAI's streaming feature
+async def stream_openai_response(prompt: str):
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # or other models
+        prompt=prompt,
+        max_tokens=1000,
+        stream=True  # Enable streaming
+    )
+
+    for chunk in response:
+        if 'choices' in chunk:
+            chunk_text = chunk['choices'][0].get('text', '')
+            if chunk_text.strip():
+                yield chunk_text
+
 @app.post("/chatinput")
 async def stream_audio(request: TextRequest):
     try:
-        # Send user message to OpenAI ChatCompletion API with streaming
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are ChatGPT."},
-                {"role": "user", "content": request.text},
-            ],
-            stream=True  # Enable streaming
-        )
+        # Stream OpenAI response text
+        async def stream_speech():
+            async for chunk in stream_openai_response(request.text):
+                try:
+                    # Convert text to speech using gTTS
+                    tts = gTTS(text=chunk, lang='en')
+
+                    # Create a BytesIO stream to hold the MP3 data
+                    mp3_fp = io.BytesIO()
+                    tts.write_to_fp(mp3_fp)
+                    mp3_fp.seek(0)
+
+                    # Stream the MP3 file
+                    yield mp3_fp.read()
+                except Exception as e:
+                    print(f"An error occurred while generating speech: {e}")
+                    raise HTTPException(status_code=500, detail="Internal Server Error")
+
+        # Stream the MP3 file directly as a binary response
+        return StreamingResponse(stream_speech(), media_type="audio/mpeg", 
+                                 headers={"Content-Disposition": "attachment; filename=audio.mp3"})
+
     except Exception as e:
-        logger.error(f"OpenAI API error: {e}")
-        raise HTTPException(status_code=500, detail="OpenAI API error.")
+        print(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    async def synthesize_speech(text_chunk: str) -> bytes:
-        """
-        Synthesize speech using AWS Polly for the given text chunk.
-        Runs the synchronous boto3 call in a separate thread to avoid blocking.
-        """
-        try:
-            polly_response = polly_client.synthesize_speech(
-                Text=text_chunk,
-                OutputFormat='mp3',
-                VoiceId='Joanna'  # Choose an appropriate voice
-            )
-            audio_stream = polly_response['AudioStream'].read()
-            return audio_stream
-        except (BotoCoreError, ClientError) as polly_error:
-            logger.error(f"AWS Polly error: {polly_error}")
-            raise HTTPException(status_code=500, detail="TTS conversion error.")
-
-    async def generate_audio_stream():
-        try:
-            async for chunk in response:
-                if 'choices' in chunk:
-                    delta = chunk['choices'][0]['delta']
-                    if 'content' in delta:
-                        text_chunk = delta['content']
-                        logger.debug(f"Received text chunk: {text_chunk}")
-
-                        # Convert text chunk to speech using AWS Polly in a separate thread
-                        audio_bytes = await asyncio.to_thread(synthesize_speech, text_chunk)
-                        yield audio_bytes
-        except Exception as e:
-            logger.error(f"Error while streaming from OpenAI: {e}")
-            raise HTTPException(status_code=500, detail="Error streaming from OpenAI.")
-
-    return StreamingResponse(
-        generate_audio_stream(),
-        media_type="audio/mpeg",
-        headers={"Content-Disposition": "attachment; filename=audio.mp3"}
-    )
