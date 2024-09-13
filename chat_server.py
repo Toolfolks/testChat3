@@ -1,7 +1,7 @@
 # Install the required packages before running the code:
 # pip install fastapi uvicorn openai gtts aiofiles
 
-from fastapi import FastAPI, Request, StreamingResponse
+from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
 from gtts import gTTS
