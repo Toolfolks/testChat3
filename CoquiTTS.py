@@ -51,52 +51,29 @@ def add_message_to_thread(thread_id, role, content):
     return message
 
 @app.post("/chatinput")
-async def stream_audio(request: TextRequest):
-    if not my_thread:
-        raise HTTPException(status_code=500, detail="Thread not initialized.")
-
-    # Add user message to the thread
-    add_message_to_thread(my_thread.id, "user", request.text)
-
-    # Prepare the OpenAI API call with streaming
+async def generate_audio_stream():
+    buffer = ""
+    for chunk in response:
+        if 'choices' in chunk:
+            delta = chunk['choices'][0]['delta']
+            if 'content' in delta:
+                buffer += delta['content']
+                # Yield the text chunks as they come
+                yield delta['content']
+    
+    # After receiving all text, convert to audio
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # Use the appropriate model
-            messages=[
-                {"role": "system", "content": "You are ChatGPT."},
-                {"role": "user", "content": request.text},
-            ],
-            stream=True  # Enable streaming
-        )
+        from gtts import gTTS
+
+        tts = gTTS(text=buffer, lang='en')
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+
+        # Yield the audio content
+        audio_content = mp3_fp.read()
+        yield audio_content
     except Exception as e:
-        print(f"OpenAI API error: {e}")
-        raise HTTPException(status_code=500, detail="OpenAI API error.")
-
-    async def generate_audio_stream():
-        buffer = ""
-        for chunk in response:
-            if 'choices' in chunk:
-                delta = chunk['choices'][0]['delta']
-                if 'content' in delta:
-                    buffer += delta['content']
-                    # Here, you can yield the text chunks as they come
-                    # For demonstration, we'll yield text. To convert to audio in real-time,
-                    # you would need a streaming TTS solution.
-                    yield delta['content']
-        
-        # After receiving all text, convert to audio
-        try:
-            from gtts import gTTS
-
-            tts = gTTS(text=buffer, lang='en')
-            mp3_fp = io.BytesIO()
-            tts.write_to_fp(mp3_fp)
-            mp3_fp.seek(0)
-
-            # Yield the audio content
-            yield from mp3_fp.read()
-        except Exception as e:
-            print(f"TTS error: {e}")
-            raise HTTPException(status_code=500, detail="TTS conversion error.")
-
+        print(f"TTS error: {e}")
+        raise HTTPException(status_code=500, detail="TTS conversion error.")
     return StreamingResponse(generate_audio_stream(), media_type="audio/mpeg", headers={"Content-Disposition": "attachment; filename=audio.mp3"})
