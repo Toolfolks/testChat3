@@ -70,7 +70,6 @@ def run_assistant(thread_id, assistant_id, instructions):
     thread_id= thread_id,
     assistant_id=assistant_id,
     instructions=instructions,
-    stream=True,
     event_handler=EventHandler())
 
     return stream;
