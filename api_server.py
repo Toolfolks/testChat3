@@ -38,9 +38,6 @@ global_last_message_time = 0
    # Initialize the thread
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
-# Step 1: Retrieve the Existing Assistant
-existing_assistant = client.beta.assistants.retrieve(existing_assistant_id)
-
 # Create a TestClient instance for sending requests to the FastAPI app
 client_app = TestClient(app)
 
