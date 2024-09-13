@@ -65,12 +65,12 @@ def add_message_to_thread(thread_id, role, content):
     )
     return message
 
-def run_assistant(thread_id, assistant_id, instructions):    
+def run_assistant(thread_id, assistant_id, instructions, eventHandler):    
     stream = client.beta.threads.runs.create(
     thread_id= thread_id,
     assistant_id=assistant_id,
     instructions=instructions,
-    event_handler=EventHandler())
+    event_handler=eventHandler)
 
     return stream;
 
@@ -116,7 +116,7 @@ async def chat(request: TextRequest):
     my_assistant = client.beta.assistants.retrieve(existing_assistant_id)
 
 
-    stream_q = run_assistant(my_thread.id, existing_assistant_id,my_assistant.instructions)
+    stream_q = run_assistant(my_thread.id, existing_assistant_id,my_assistant.instructions, handler)
 
 
     t = threading.Thread(target=run_stream, args=(stream_q, q))
