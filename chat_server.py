@@ -16,6 +16,15 @@ from fastapi.testclient import TestClient  # Import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+    # Configure CORS to allow all origins (for development/testing purposes)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Replace 'YOUR_OPENAI_API_KEY' with your actual OpenAI API key
 openai.api_key = os.getenv('OPENAI_API_KEY') 
@@ -34,17 +43,8 @@ class TextRequest(BaseModel):
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
-    user_input = data.get('text', '')
+    user_input = data.get('text', '')    
 
-    
-    # Configure CORS to allow all origins (for development/testing purposes)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Allow all origins
-        allow_credentials=True,
-        allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
-        allow_headers=["*"],  # Allow all headers
-    )
 
     # Create a TestClient instance for sending requests to the FastAPI app
     client_app = TestClient(app)
