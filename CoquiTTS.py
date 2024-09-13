@@ -1,19 +1,16 @@
 import os
 import io
 import logging
-import time
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
-from TTS.api import TTS
-import numpy as np
-from scipy.io import wavfile
+import openai
+import asyncio
 
 # Initialize the OpenAI client
-client = OpenAI()
-OpenAI.api_key = os.getenv('OPENAI_API_KEY')  # Ensure your OpenAI API key is set as an environment variable
+openai.api_key = os.getenv('OPENAI_API_KEY')  # Ensure your API key is set
 
 # Initialize FastAPI
 app = FastAPI()
@@ -31,26 +28,18 @@ app.add_middleware(
 class TextRequest(BaseModel):
     text: str
 
-# Global variables for assistant message tracking
-global_assistant_message = ""
-global_last_message_time = 0
+# Initialize OpenAI API client
+client = OpenAI()
 
-# Initialize the thread and assistant IDs
+# Define your assistant and thread setup here (assuming it's necessary)
 existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 
-# Step 1: Retrieve the Existing Assistant
-existing_assistant = client.beta.assistants.retrieve(existing_assistant_id)
-
-# Create a TestClient instance for sending requests to the FastAPI app (if needed for testing)
-# from fastapi.testclient import TestClient
-# client_app = TestClient(app)
-
+# Create a thread (if required)
 try:
-    # Step 2: Create a Thread
     my_thread = client.beta.threads.create()
-    # print(f"This is the thread object: {my_thread} \n")
 except Exception as e:
     print(f"An thread error occurred: {e}")
+    my_thread = None  # Handle accordingly
 
 def add_message_to_thread(thread_id, role, content):
     """Adds a message to the thread and returns the message object."""
@@ -61,117 +50,53 @@ def add_message_to_thread(thread_id, role, content):
     )
     return message
 
-def run_assistant_on_thread(thread_id, assistant_id, instructions):
-    """Runs the assistant on the specified thread and returns the run object."""
-    run = client.beta.threads.runs.create(
-        thread_id=thread_id,
-        assistant_id=assistant_id,
-        instructions=instructions
-    )
-    return run
-
-def wait_for_run_completion(thread_id, run_id):
-    """Waits for the assistant run to complete and returns the final status."""
-    while True:
-        keep_retrieving_run = client.beta.threads.runs.retrieve(
-            thread_id=thread_id,
-            run_id=run_id
-        )
-        if keep_retrieving_run.status == "completed":
-            return keep_retrieving_run.status
-        elif keep_retrieving_run.status in ["queued", "in_progress"]:
-            time.sleep(2)  # Avoid hitting the API too frequently
-        else:
-            return keep_retrieving_run.status
-
-def retrieve_latest_assistant_message(thread_id, last_message_time):
-    """Retrieves the latest message from the assistant in the thread after the last known message time."""
-    all_messages = client.beta.threads.messages.list(thread_id=thread_id)
-
-    print(f"Total messages retrieved: {len(all_messages.data)}")
-
-    # Find new assistant messages that are newer than the last known message time
-    new_assistant_messages = [msg for msg in all_messages.data if msg.role == "assistant"]
-
-    # If there are new assistant messages, return the latest one
-    if new_assistant_messages:
-        for msg in new_assistant_messages:
-            print(f"Message ID: {msg.id} Time: {msg.created_at}, Role: {msg.role}, Content: {msg.content[0].text.value}")
-        # ENDFOR
-
-        latest_message = new_assistant_messages[0]
-        return latest_message.content[0].text.value, latest_message.created_at
-    # ENDIF
-
-    print("No new assistant messages found.")
-
-    return None, last_message_time
-
-# Initialize Coqui TTS model at startup
-print("Loading Coqui TTS model...")
-tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
-print("Coqui TTS model loaded.")
-
 @app.post("/chatinput")
 async def stream_audio(request: TextRequest):
-    # Add message to the thread
+    if not my_thread:
+        raise HTTPException(status_code=500, detail="Thread not initialized.")
+
+    # Add user message to the thread
     add_message_to_thread(my_thread.id, "user", request.text)
 
-    # Run the assistant
-    my_run = run_assistant_on_thread(my_thread.id, existing_assistant_id, existing_assistant.instructions)
-
-    # Wait for run to complete
-    run_status = wait_for_run_completion(my_thread.id, my_run.id)
-
-    local_assistant_message = ""
-
-    if run_status == "completed":
-        try:
-            # Attempt to retrieve the latest assistant message
-            local_assistant_message, last_message_time = retrieve_latest_assistant_message(my_thread.id, global_last_message_time)
-
-            # Check if the assistant message was successfully retrieved
-            if local_assistant_message is None:
-                raise ValueError("Failed to retrieve assistant message: None returned")
-
-            global_last_message_time = last_message_time
-
-        except ValueError as ve:
-            print(f"ValueError occurred: {ve}")
-            raise HTTPException(status_code=500, detail="Failed to retrieve assistant message.")
-    
-        except RuntimeError as re:
-            print(f"RuntimeError occurred: {re}")
-            raise HTTPException(status_code=500, detail="Runtime error occurred.")
-    
-        except Exception as e:
-            # General exception catch for any unexpected errors
-            print(f"An unexpected error occurred: {e}")
-            raise HTTPException(status_code=500, detail="Internal Server Error.")
-    # END IF
-
+    # Prepare the OpenAI API call with streaming
     try:
-        assistant_text = local_assistant_message
-
-        print(f"Assistant text: {assistant_text}")
-
-        # Synthesize speech using Coqui TTS, returns a numpy array
-        wav = tts.tts(assistant_text)
-
-        # Ensure the audio is in the correct format (16-bit PCM)
-        wav_normalized = wav / np.max(np.abs(wav)) if np.max(np.abs(wav)) != 0 else wav
-        wav_int16 = np.int16(wav_normalized * 32767)
-
-        # Create a BytesIO buffer to hold the WAV data
-        buffer = io.BytesIO()
-        wavfile.write(buffer, tts.synthesizer.output_sample_rate, wav_int16)
-        buffer.seek(0)
-
-        # Stream the WAV file directly as a binary response
-        return StreamingResponse(buffer, media_type="audio/wav",
-                                 headers={"Content-Disposition": "attachment; filename=audio.wav"})
-
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Use the appropriate model
+            messages=[
+                {"role": "system", "content": "You are ChatGPT."},
+                {"role": "user", "content": request.text},
+            ],
+            stream=True  # Enable streaming
+        )
     except Exception as e:
-        print(f"An error occurred during TTS synthesis or audio streaming: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error.")
+        print(f"OpenAI API error: {e}")
+        raise HTTPException(status_code=500, detail="OpenAI API error.")
 
+    async def generate_audio_stream():
+        buffer = ""
+        for chunk in response:
+            if 'choices' in chunk:
+                delta = chunk['choices'][0]['delta']
+                if 'content' in delta:
+                    buffer += delta['content']
+                    # Here, you can yield the text chunks as they come
+                    # For demonstration, we'll yield text. To convert to audio in real-time,
+                    # you would need a streaming TTS solution.
+                    yield delta['content']
+        
+        # After receiving all text, convert to audio
+        try:
+            from gtts import gTTS
+
+            tts = gTTS(text=buffer, lang='en')
+            mp3_fp = io.BytesIO()
+            tts.write_to_fp(mp3_fp)
+            mp3_fp.seek(0)
+
+            # Yield the audio content
+            yield from mp3_fp.read()
+        except Exception as e:
+            print(f"TTS error: {e}")
+            raise HTTPException(status_code=500, detail="TTS conversion error.")
+
+    return StreamingResponse(generate_audio_stream(), media_type="audio/mpeg", headers={"Content-Disposition": "attachment; filename=audio.mp3"})
