@@ -39,53 +39,79 @@ existing_assistant_id = "asst_KwbkEYapMSuJDNHO6qGtyazI"
 class TextRequest(BaseModel):
    text: str
 
+from flask import Flask, request, Response
+import openai
+from openai import AssistantEventHandler
+import threading
+import queue
 
-@app.post("/chat")
-async def chat(request: Request):
-    data = await request.json()
-    user_input = data.get('text', '')    
+app = Flask(__name__)
 
+# Replace 'YOUR_API_KEY' with your actual OpenAI API key
+openai.api_key = 'YOUR_API_KEY'
 
-    # Create a TestClient instance for sending requests to the FastAPI app
-    client_app = TestClient(app)
-    
-    # Step 1: Retrieve the Existing Assistant
-    existing_assistant = client.beta.assistants.retrieve(existing_assistant_id)
+class EventHandler(AssistantEventHandler):
+    def __init__(self, q):
+        self.q = q
 
-    async def stream_chat():
+    def on_text_created(self, text) -> None:
+        self.q.put("\nassistant > ")
 
+    def on_text_delta(self, delta, snapshot):
+        self.q.put(delta.value)
 
-        # Start a chat session with the assistant
-        response = await existing_assistant.chat_create(
-            messages=[{"role": "user", "content": user_input}],
-            stream=True
-        )
+    def on_tool_call_created(self, tool_call):
+        self.q.put(f"\nassistant > {tool_call.type}\n")
+      
+    def on_tool_call_delta(self, delta, snapshot):
+        if delta.type == 'code_interpreter':
+            if delta.code_interpreter.input:
+                self.q.put(delta.code_interpreter.input)
+            if delta.code_interpreter.outputs:
+                self.q.put(f"\n\noutput >")
+                for output in delta.code_interpreter.outputs:
+                    if output.type == "logs":
+                        self.q.put(f"\n{output.logs}")
 
-        # Initialize text content accumulator
-        text_content = ''
+def run_stream(stream, q):
+    stream.until_done()
+    q.put(None)  # Signal the end of the stream
 
-        # Stream the assistant's response back to the client
-        async for chunk in response:
-            if 'choices' in chunk:
-                choice = chunk['choices'][0]
-                if 'delta' in choice:
-                    delta = choice['delta']
-                    if 'content' in delta:
-                        content = delta['content']
-                        text_content += content
-                        yield content
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.json
+    user_input = data.get("input", "")
 
-        # After streaming text, convert accumulated text to speech
-        tts = gTTS(text=text_content, lang='en')
-        audio_file = f"{uuid.uuid4()}.mp3"
-        tts.save(audio_file)
+    # Replace 'YOUR_ASSISTANT_ID' with your actual assistant ID
+    assistant_id = 'YOUR_ASSISTANT_ID'
 
-        # Stream the audio file back to the client
-        async with aiofiles.open(audio_file, mode='rb') as f:
-            audio_data = await f.read()
-            yield audio_data
+    # Create a new thread for the conversation
+    thread = openai.beta.threads.create(assistant_id=assistant_id)
+    thread_id = thread.id
 
-        # Clean up the audio file
-        os.remove(audio_file)
+    q = queue.Queue()
+    handler = EventHandler(q)
 
-    return StreamingResponse(stream_chat(), media_type="text/plain")
+    # Start the streaming run
+    stream = openai.beta.threads.runs.stream(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+        messages=[{"role": "user", "content": user_input}],
+        event_handler=handler,
+    )
+
+    # Run the stream in a separate thread
+    t = threading.Thread(target=run_stream, args=(stream, q))
+    t.start()
+
+    def generate():
+        while True:
+            item = q.get()
+            if item is None:
+                break
+            yield item
+
+    return Response(generate(), mimetype='text/plain')
+
+if __name__ == '__main__':
+    app.run(debug=True)
